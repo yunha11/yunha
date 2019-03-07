@@ -220,18 +220,20 @@
         var qs = 
         "?response_type=code&"
         + "client_id=l7xx6f194aab88fe48f68772afe4554d71a0&"
-        + "redirect_url=http://localhost:3000/callback&"
+        + "redirect_uri=http://localhost:3000/callback&"
         + "scope=login transfer&"
         + "auth_type=0&"
         + "invoke_type=ajax" 
          $.ajax({
             url : "https://testapi.open-platform.or.kr/oauth/2.0/authorize2"+qs,
             type : "get",
-        }).done(function(result){
+            data : {},
+        }).done(function(result){  
             window.name = "parents";
-            console.log(result);
+            console.log(result.location);
+
             var tmpwindow = window.open("about:blank");
-            
+            tmpwindow.location = result.location; //새 장 켜기(redirection)
         })
     })
 
