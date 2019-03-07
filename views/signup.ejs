@@ -70,7 +70,7 @@
                             <em>(required)</em>
                             <input type="password" placeholder="Confirm your Password">
                         </div>
-                        
+
                     <!--인증페이지에서 받아온 정보 확인-->
                         <div class="input-style has-icon input-style-1 input-required">
                             <i class="input-icon fa fa-lock font-11"></i>
@@ -96,7 +96,7 @@
                         </div>
                         <div class="clear"></div>
                         <button id="authButton" type="button" class="button button-full button-m shadow-large button-round-small bg-green1-dark top-10 bottom-0">계좌인증</button>
-                        <a href="#" class="button button-full button-m shadow-large button-round-small bg-green1-dark top-10 bottom-0">LOGIN</a>
+                        <button id="join" type="button" class="button button-full button-m shadow-large button-round-small bg-green1-dark top-10 bottom-0">가입</button>
                     </div>
                 </div>
 
@@ -236,13 +236,50 @@
 
 <script>
 
+
     $("#authButton").click(function() {
-        
+        invokeAuth();
+    })
+    $("#join").click(function() {
+        join();
+    })
+
+    function join() {
+        var username = $("#username").val();
+        var userid = $("#userid").val();
+        var userpassword = $("#userpassword").val();
+        var accessToken = $("#accessToken").val();
+        var refreshToken = $("#refreshToken").val();
+        var userseqnum = $("#userseqnum").val();
+
+        $.ajax({
+            url : '/join',
+            type : 'POST',
+            data : {
+                name : username,
+                password : userpassword,
+                id : userid,
+                accessToken : accessToken,
+                refreshToken : refreshToken,
+                userseqnum : userseqnum
+            }
+        }).done(function(result){
+            if(result == 1){
+                alert("회원가입 완료");
+                //리다이렉션
+            }
+            else {
+                alert("회원가입 실패");
+           }
+        })
+    }
+
+    function invokeAuth(){
         var qs = 
         "?response_type=code&"
         + "client_id=l7xx6f194aab88fe48f68772afe4554d71a0&"
         + "redirect_uri=http://localhost:3000/callback&"
-        + "scope=login transfer&"
+        + "scope=login inquiry transfer&"
         + "auth_type=0&"
         + "invoke_type=ajax" 
          $.ajax({
@@ -256,7 +293,7 @@
             var tmpwindow = window.open("about:blank");
             tmpwindow.location = result.location; //새 장 켜기(redirection)
         })
-    })
+    }
 
 </script>
 

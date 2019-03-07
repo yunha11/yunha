@@ -4,8 +4,6 @@ var request = require('request');
 var path = require('path');
 var parser = require('xml2js');
 
-var bodyParser = require('body-parser')
-
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
   host     : 'localhost',
@@ -14,10 +12,8 @@ var connection = mysql.createConnection({
   database : 'pjt01'
 });
 
-connection.connect();
-
-app.use(bodyParser.urlencoded());
-app.use(bodyParser.json());
+app.use(express.urlencoded());
+app.use(express.json());
 
 console.log(path.join(__dirname, 'views'));
 app.set('views', path.join(__dirname,'views'));
@@ -33,6 +29,111 @@ app.get('/home', function(req, res) {
 app.get('/signup', function(req,res) {
     res.render('signup');
 })
+
+
+connection.connect();
+
+app.post('/join', function(req, res){
+  var name = req.body.name;
+  var password = req.body.password;
+  var id = req.body.id;
+  var accessToken = req.body.accessToken;
+  var refreshToken = req.body.refreshToken;
+  var userseqnum = req.body.userseqnum;
+  var sql = "INSERT INTO pjt01.user (userid, userpassword, username, accessToken, refreshToken, userseqnum) VALUES (?,?,?,?,?,?)"
+  connection.query(sql,[id, password, name, accessToken, refreshToken, userseqnum], function (error, results, fields){
+    if (error) { throw error; }
+    else {
+      res.json(1)
+    }
+  });
+
+})
+app.get('/list',function(req, res){
+  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704";
+    var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/transaction_list";
+    var qs = 
+    "?fintech_use_num=199004071057725906017893" +
+    "&inquiry_type=A"+
+    "&from_date=20160101"+
+    "&to_date=20160101"+
+    "&sort_order=A"+
+    "&page_index=00001"+
+    "&tran_dtime=20190307101010"
+
+    var option = {
+        method : "GET",
+        url : requestURL+qs,
+        headers : {
+            "Authorization" : "Bearer " + accessToken
+        }
+    }
+    request(option, function(err, response, body){
+        var data = JSON.parse(body);
+        res.json(data);
+    })
+})
+/*
+  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704";
+  //var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/transaction_list?fintech_use_num=199004071057725906017893&inquiry_type=A&from_date=20160404&to_date=20190302&sort_order=D&page_index=1&tran_dtime=20190307155647&befor_inquiry_trace_info=123&list_tran_seqno=0"
+  var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/transaction_list";
+  var qs = 
+  "?fintech_use_num=199004071057725906017893" +
+  "&inquiry_type=A" +
+  "&from_date=20161001" +
+  "&to_date=20161031" +
+  "&sort_order=D" +
+  "&page_index=00001" +
+  "&tran_dtime=20190307101010" +
+  "&list_tran_seqno=0000000000"
+
+  var option = {
+    method : "GET",
+    url : requestURL+qs,
+    headers : {
+      "Authorization" : "Bearer " + accessToken
+    }
+  }
+  request(option, function(err, response, body){
+    var data = JSON.parse(body);
+    res.json(data);
+  })
+})
+*/
+//잔액조회
+app.get('/balance', function(req, res){
+  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704"
+  var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/balance?fintech_use_num=199004071057725906017893&tran_dtime=20190307164548"
+  var option = {
+    method : "GET",
+    url : requestURL,
+    headers : {
+      "Authorization" : "Bearer " + accessToken
+    }
+  }
+  request(option, function(err, response, body){
+    var data = JSON.parse(body);
+    res.json(data);
+    
+  })
+})
+
+app.get('/user', function(req, res){
+  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704"
+  var requestURL = "https://testapi.open-platform.or.kr/user/me?user_seq_no=1100034847"
+  var option = {
+    method : "GET",
+    url : requestURL,
+    headers : {
+      "Authorization" : "Bearer " + accessToken
+    }
+  }
+  request(option, function(err, response, body){
+    res.send(body);
+  })
+})
+
+
 
 app.get('/callback', function(req, res) {
   var auth_code = req.query.code //인증완료 후 뜨는 창 http://localhost:3000/callback?code 뒷부분이 담김
