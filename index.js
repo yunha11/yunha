@@ -53,10 +53,14 @@ app.get('/callback', function(req, res) {
         grant_type : "authorization_code"
       }
   }
-  request(option, function(err, res, body){
+  request(option, function(err, response, body){
     if(err) throw err;
     else {
       console.log(body);
+      //평문 상태의 body를 json타입으로 바꿔줌
+      var accessRequestResult = JSON.parse(body);
+      res.render('resultChild', {data : accessRequestResult}); //resultChilde 페이지에 data로 넘겨줌
+
     }
   })
 
