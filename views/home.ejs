@@ -35,19 +35,9 @@
     </div>
     
     <div class="page-content header-clear-medium">   
+        <div id="cardList">
             
-                
-        <div class="content-boxed">
-            <div class="content">
-                <h1 class="bolder">Starter Page</h1>
-                <p>
-                    This is an empty page, containing all elements you need to to create more pages. Check the documentation files, and copy & paste your features into this page, then save it and so on. 
-                    <br><br>
-                    If you run into any issues, let us know and we'll gladly assist.
-                </p>
-            </div>
-        </div>
-        
+        </div>        
         <a href="https://enableds.com/support/" class="default-link button button-m shadow-huge button-round-large bottom-30 button-full button-margins bg-highlight">Enabled - Support Forum</a>
         
         <div class="content-boxed">
@@ -223,8 +213,39 @@
     <div class="menu-hider"></div>
 </div>
 
-
 <script type="text/javascript" src="scripts/jquery.js"></script>
 <script type="text/javascript" src="scripts/plugins.js"></script>
 <script type="text/javascript" src="scripts/custom.js"></script>
+
+<script>
+
+    var accessToken = localStorage.getItem('accessToken');
+    var useseqnum = localStorage.getItem('useseqnum'); 
+    $.ajax({ 
+        url : "/user",
+        type : "POST",
+        data : {
+            accessToken : accessToken,
+            userseqno : useseqnum
+            },
+            success : function(data){
+                console.log(data);
+                drawcard(data);
+            } 
+        });                       
+        function drawcard(data){
+        console.log(data);
+        var list = data.res_list;
+        for(var i= 0; i < list.length; i++){
+            var element = list[i];
+            $("#cardList").append(
+                '<a href="/amount?finusenum='+element.fintech_use_num+'" class="default-link button button-m shadow-huge button-round-large bottom-30 button-full button-margins bg-highlight">'+element.account_alias+'</a>'
+            );  
+        }
+    }
+
+</script>>
+
+
+
 </body>

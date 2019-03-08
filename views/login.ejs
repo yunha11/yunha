@@ -35,73 +35,43 @@
         <div class="clear"></div>
     </div>
         
+    <div class="page-content-black"></div>
     <div class="page-content">   
-        
-        <div data-height="cover-header" class="caption bottom-0">
-            <div class="caption-center">
+        <div class="cover-wrapper cover-no-buttons">
+            <div data-height="cover" class="caption bottom-0">
+                <div class="caption-center">
 
-                <div class="content-boxed left-40 right-40">
-                    <div class="content top-10 bottom-20">
-                        <h1 class="center-text uppercase ultrabold fa-3x">Register</h1>
-                        <p class="center-text color-highlight font-11 under-heading bottom-30">
-                            Don't have an account? Register here.
+                    <div class="left-50 right-50 top-50">
+                        <h1 class="color-white center-text uppercase ultrabold fa-4x">LOGIN</h1>
+                        <p class="color-highlight center-text font-12 under-heading bottom-30 top-5">
+                            Let's get you in your account
                         </p>
-                        <div class="input-style has-icon input-style-1 input-required">
+                        <div class="input-style input-light has-icon input-style-1 input-required">
                             <i class="input-icon fa fa-user font-11"></i>
-                            <span>Username</span>
+                            <span>Id</span>
                             <em>(required)</em>
-                            <input type="name" id="username" placeholder="Username">
+                            <input type="name" id="userId" placeholder="Username">
                         </div> 
-                        <div class="input-style has-icon input-style-1 input-required">
-                            <i class="input-icon fa fa-at"></i>
-                            <span>Email</span>
-                            <em>(required)</em>
-                            <input type="id" id="userid" placeholder="Email">
-                        </div>         
-                        <div class="input-style has-icon input-style-1 input-required">
+                        <div class="input-style input-light has-icon input-style-1 input-required bottom-30">
                             <i class="input-icon fa fa-lock font-11"></i>
                             <span>Password</span>
                             <em>(required)</em>
-                            <input type="password" id="userpassword" placeholder="Choose a Password">
+                            <input type="password" id="userPassword" placeholder="Password">
                         </div>          
-                        <div class="input-style has-icon input-style-1 input-required">
-                            <i class="input-icon fa fa-lock font-11"></i>
-                            <span>Password</span>
-                            <em>(required)</em>
-                            <input type="password" placeholder="Confirm your Password">
+                        <div class="one-half">
+                            <a href="pageapp-register.html" class="font-11 color-white opacity-50">Create Account</a>
                         </div>
-
-                    <!--인증페이지에서 받아온 정보 확인-->
-                        <div class="input-style has-icon input-style-1 input-required">
-                            <i class="input-icon fa fa-lock font-11"></i>
-                            <span>accessToken</span>
-                            <em>(required)</em>
-                            <input type="text" id="accessToken" placeholder="/">
-                        </div>
-                        <div class="input-style has-icon input-style-1 input-required">
-                            <i class="input-icon fa fa-lock font-11"></i>
-                            <span>refreshToken</span>
-                            <em>(required)</em>
-                            <input type="text" id="refreshToken" placeholder="/">
-                        </div>
-                        <div class="input-style has-icon input-style-1 input-required">
-                            <i class="input-icon fa fa-lock font-11"></i>
-                            <span>userseqnum</span>
-                            <em>(required)</em>
-                            <input type="text" id="userseqnum" placeholder="/">
-                        </div>
-                         
-                        <div class="top-20 bottom-20">
-                            <a href="#" data-menu="menu-signin" class="center-text font-11 color-gray2-dark">Already Registered? Sign In Here.</a>
+                        <div class="one-half last-column">
+                            <a href="pageapp-forgot.html" class="text-right font-11 color-white opacity-50">Fogot Credentials</a>
                         </div>
                         <div class="clear"></div>
-                        <button id="authButton" type="button" class="button button-full button-m shadow-large button-round-small bg-green1-dark top-10 bottom-0">계좌인증</button>
-                        <button id="join" type="button" class="button button-full button-m shadow-large button-round-small bg-green1-dark top-10 bottom-0">가입</button>
+                        <button type="button" onclick="login()" class="">LOGIN</button>
                     </div>
-                </div>
 
-                    
-            </div>
+                </div>
+            </div>   
+            <div class="caption-overlay bg-black opacity-90"></div>
+            <div class="caption-bg" style="background-image:url(images/pictures/29t.jpg)"></div>
         </div>
     </div>
     <!-- Page Content Class Ends Here-->
@@ -236,65 +206,32 @@
 
 <script>
 
+    function login(){
 
-    $("#authButton").click(function() {
-        invokeAuth();
-    })
-    $("#join").click(function() {
-        join();
-    })
-
-    function join() {
-        var username = $("#username").val();
-        var userid = $("#userid").val();
-        var userpassword = $("#userpassword").val();
-        var accessToken = $("#accessToken").val();
-        var refreshToken = $("#refreshToken").val();
-        var userseqnum = $("#userseqnum").val();
-        
-        $.ajax({
-            url : '/join',
-            type : 'POST',
+        var username = $("#userId").val();
+        var userpassword = $("#userPassword").val();
+        console.log(username, userpassword);
+        $.ajax({ 
+            url : "/login",
+            type : "POST",
             data : {
-                name : username,
+                id : username,
                 password : userpassword,
-                id : userid,
-                accessToken : accessToken,
-                refreshToken : refreshToken,
-                userseqnum : userseqnum
-            }
-        }).done(function(result){
-            if(result == 1){
-                alert("회원가입 완료");
-                //리다이렉션
-            }
-            else {
-                alert("회원가입 실패");
-           }
-        })
-    }
+            },
+            success : function(data){
+                console.log("login");
+                console.log(data);
+                localStorage.setItem("accessToken", data[0].accessToken);
+                localStorage.setItem("useseqnum", data[0].userseqnum);
+            } 
 
-    function invokeAuth(){
-        var qs = 
-        "?response_type=code&"
-        + "client_id=l7xx6f194aab88fe48f68772afe4554d71a0&"
-        + "redirect_uri=http://localhost:3000/callback&"
-        + "scope=login inquiry transfer&"
-        + "auth_type=0&"
-        + "invoke_type=ajax" 
-         $.ajax({
-            url : "https://testapi.open-platform.or.kr/oauth/2.0/authorize2"+qs,
-            type : "get",
-            data : {},
-        }).done(function(result){  
-            window.name = "parents";
-            console.log(result.location);
-
-            var tmpwindow = window.open("about:blank");
-            tmpwindow.location = result.location; //새 장 켜기(redirection)
-        })
+        });                
     }
+    
+
+
 
 </script>
+
 
 </body>

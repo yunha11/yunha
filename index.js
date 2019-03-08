@@ -3,14 +3,16 @@ var app = express();
 var request = require('request');
 var path = require('path');
 var parser = require('xml2js');
-
 var mysql      = require('mysql');
-var connection = mysql.createConnection({
+var connectionPool = mysql.createPool({
+  connectionLimit : 5,
   host     : 'localhost',
   user     : 'root',
   password : 'rootpwd135!',
   database : 'pjt01'
 });
+
+
 
 app.use(express.urlencoded());
 app.use(express.json());
@@ -30,8 +32,17 @@ app.get('/signup', function(req,res) {
     res.render('signup');
 })
 
+app.get('/login', function(req,res) {
+  res.render('login');
+})
 
-connection.connect();
+app.get('/amount',function(err,res){
+  res.render('amount');
+})
+
+app.get('/qrcode',function(req, res){
+  res.render('qrcode');
+})
 
 app.post('/join', function(req, res){
   var name = req.body.name;
@@ -41,22 +52,71 @@ app.post('/join', function(req, res){
   var refreshToken = req.body.refreshToken;
   var userseqnum = req.body.userseqnum;
   var sql = "INSERT INTO pjt01.user (userid, userpassword, username, accessToken, refreshToken, userseqnum) VALUES (?,?,?,?,?,?)"
-  connection.query(sql,[id, password, name, accessToken, refreshToken, userseqnum], function (error, results, fields){
-    if (error) { throw error; }
-    else {
-      res.json(1)
-    }
-  });
-
+  
+  connectionPool.getConnection(function(err, conn){
+    conn.query(sql,[id, password, name, accessToken, refreshToken, userseqnum], function (error, results, fields){
+      if (error) { throw error; }
+      else {
+        res.json(1)
+      }
+    });  
+  })
 })
-app.get('/list',function(req, res){
+
+app.post('/login', function(req, res){
+  var id = req.body.id;
+  var password = req.body.password;
+  connectionPool.getConnection(function(err, conn){
+    conn.query("SELECT * FROM pjt01.user WHERE userid = ?",[id],function(err,result){
+      if(err){
+        throw err;
+        }
+        else {
+          var userData = result;
+          console.log("login");
+          conn.release();
+          res.json(userData);
+        }
+    })
+  })    
+})
+app.get('/withdraw',function(req, res){
   var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704";
+  var getTokenUrl = "https://testapi.open-platform.or.kr/v1.0/transfer/withdraw";
+  
+  var option = {
+    method : "POST",
+    url : getTokenUrl,
+    headers : { 
+      "Content-Type" : "application/json; charset=UTF-8",
+      "Authorization" : "Bearer " + accessToken
+    },
+    form : {
+      dps_print_content : "test",
+      fintech_use_num : "199004071057725906017893",
+      tran_amt : "20000",
+      tran_dtime : "20190310101921",
+    }
+  }
+  request(option, function(err, response, body){
+    if(err) throw err;
+    else {
+      console.log(body);
+      var withdrawResult = JSON.parse(body);
+      res.send(withdrawResult);
+
+    }
+  })
+})
+
+app.get('/list',function(req, res){
+    var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704";
     var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/transaction_list";
     var qs = 
-    "?fintech_use_num=199004071057725906017893" +
+    "?fintech_use_num=199004071057725906017893"+
     "&inquiry_type=A"+
-    "&from_date=20160101"+
-    "&to_date=20160101"+
+    "&from_date=20161001"+
+    "&to_date=20161101"+
     "&sort_order=A"+
     "&page_index=00001"+
     "&tran_dtime=20190307101010"
@@ -73,37 +133,12 @@ app.get('/list',function(req, res){
         res.json(data);
     })
 })
-/*
-  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704";
-  //var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/transaction_list?fintech_use_num=199004071057725906017893&inquiry_type=A&from_date=20160404&to_date=20190302&sort_order=D&page_index=1&tran_dtime=20190307155647&befor_inquiry_trace_info=123&list_tran_seqno=0"
-  var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/transaction_list";
-  var qs = 
-  "?fintech_use_num=199004071057725906017893" +
-  "&inquiry_type=A" +
-  "&from_date=20161001" +
-  "&to_date=20161031" +
-  "&sort_order=D" +
-  "&page_index=00001" +
-  "&tran_dtime=20190307101010" +
-  "&list_tran_seqno=0000000000"
 
-  var option = {
-    method : "GET",
-    url : requestURL+qs,
-    headers : {
-      "Authorization" : "Bearer " + accessToken
-    }
-  }
-  request(option, function(err, response, body){
-    var data = JSON.parse(body);
-    res.json(data);
-  })
-})
-*/
 //잔액조회
-app.get('/balance', function(req, res){
-  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704"
-  var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/balance?fintech_use_num=199004071057725906017893&tran_dtime=20190307164548"
+app.post('/balance', function(req, res){
+  var accessToken = req.body.accessToken;
+  var finusenum = req.body.finusenum;
+  var requestURL = "https://testapi.open-platform.or.kr/v1.0/account/balance?fintech_use_num="+finusenum+"&tran_dtime=20190307101010";
   var option = {
     method : "GET",
     url : requestURL,
@@ -118,9 +153,10 @@ app.get('/balance', function(req, res){
   })
 })
 
-app.get('/user', function(req, res){
-  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704"
-  var requestURL = "https://testapi.open-platform.or.kr/user/me?user_seq_no=1100034847"
+app.post('/user', function(req, res){
+  var accessToken = req.body.accessToken;
+  var user_seq_no = req.body.userseqno;
+  var requestURL = "https://testapi.open-platform.or.kr/user/me?user_seq_no=" + user_seq_no;
   var option = {
     method : "GET",
     url : requestURL,
@@ -129,7 +165,8 @@ app.get('/user', function(req, res){
     }
   }
   request(option, function(err, response, body){
-    res.send(body);
+    obj = JSON.parse(body);
+    res.json(obj);
   })
 })
 
