@@ -44,6 +44,10 @@ app.get('/qrcode',function(req, res){
   res.render('qrcode');
 })
 
+app.get('/qrreader',function(req, res){
+  res.render('qrreader');
+})
+
 app.post('/join', function(req, res){
   var name = req.body.name;
   var password = req.body.password;
@@ -80,10 +84,11 @@ app.post('/login', function(req, res){
     })
   })    
 })
-app.get('/withdraw',function(req, res){
+
+app.post('/withdraw',function(req, res){
   var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704";
+  var usrfinnue = req.body.finusenum;
   var getTokenUrl = "https://testapi.open-platform.or.kr/v1.0/transfer/withdraw";
-  
   var option = {
     method : "POST",
     url : getTokenUrl,
@@ -91,18 +96,19 @@ app.get('/withdraw',function(req, res){
       "Content-Type" : "application/json; charset=UTF-8",
       "Authorization" : "Bearer " + accessToken
     },
-    form : {
+    json : {
       dps_print_content : "test",
-      fintech_use_num : "199004071057725906017893",
+      fintech_use_num : usrfinnue,
       tran_amt : "20000",
-      tran_dtime : "20190310101921",
+      tran_dtime : "20190101101921",
+      cms_no : "123451234123"
     }
-  }
+  };
   request(option, function(err, response, body){
     if(err) throw err;
     else {
       console.log(body);
-      var withdrawResult = JSON.parse(body);
+      var withdrawResult = body;
       res.send(withdrawResult);
 
     }
@@ -133,7 +139,46 @@ app.get('/list',function(req, res){
         res.json(data);
     })
 })
+app.post('/deposit',function(req,res){
+  var accessToken = "d6329762-54a0-4e97-9d37-3c429e56a704";
+  var getTokenUrl = "https://testapi.open-platform.or.kr/v1.0/transfer/deposit";
+  var option = {
+    method : "POST",
+    url : getTokenUrl,
+    headers : { 
+      "Content-Type" : "application/json; charset=UTF-8",
+      "Authorization" : "Bearer " + accessToken
+    },
+    json : {
+      wd_pass_phrase : "NONE",
+      wd_print_content : "test",
+      name_check_option : "on",
+      req_cnt : "25",
+      req_list : [
+        {
+        tran_no : "1",
+        fintech_use_num : finusenum,
+        print_content : "쇼핑몰환불",
+        tran_amt : "1000",
+        }
+      ],
+      tran_dtime : "20190310101921"  
+    }
+  }
+  request(option, function(err, response, body){
+    if(err) throw err;
+    else {
+      console.log(body);
+      var depositResult = body;
+      res.send(depositResult);
 
+    }
+  })
+
+
+
+
+})
 //잔액조회
 app.post('/balance', function(req, res){
   var accessToken = req.body.accessToken;
@@ -149,7 +194,6 @@ app.post('/balance', function(req, res){
   request(option, function(err, response, body){
     var data = JSON.parse(body);
     res.json(data);
-    
   })
 })
 
